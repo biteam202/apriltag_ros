@@ -8,8 +8,10 @@
 #include <cv_bridge/cv_bridge.h>
 #endif
 #include <image_transport/camera_subscriber.hpp>
+#include <opencv2/imgproc.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <tf2_ros/transform_broadcaster.hpp>
@@ -211,7 +213,34 @@ void AprilTagNode::onCamera(const sensor_msgs::msg::Image::ConstSharedPtr& msg_i
     }
 
     // convert to 8bit monochrome image
-    const cv::Mat img_uint8 = cv_bridge::toCvShare(msg_img, "mono8")->image;
+    const auto cv_ptr = cv_bridge::toCvShare(msg_img);
+    const std::string& encoding = msg_img->encoding;
+    cv::Mat img_gray;
+    cv::Mat img_uint8;
+
+    namespace enc = sensor_msgs::image_encodings;
+    if(encoding == enc::MONO8) {
+        img_uint8 = cv_ptr->image;
+    }
+    else if(encoding == enc::BGR8) {
+        cv::cvtColor(cv_ptr->image, img_gray, cv::COLOR_BGR2GRAY);
+        img_uint8 = img_gray;
+    }
+    else if(encoding == enc::RGB8) {
+        cv::cvtColor(cv_ptr->image, img_gray, cv::COLOR_RGB2GRAY);
+        img_uint8 = img_gray;
+    }
+    else if(encoding == enc::BGRA8) {
+        cv::cvtColor(cv_ptr->image, img_gray, cv::COLOR_BGRA2GRAY);
+        img_uint8 = img_gray;
+    }
+    else if(encoding == enc::RGBA8) {
+        cv::cvtColor(cv_ptr->image, img_gray, cv::COLOR_RGBA2GRAY);
+        img_uint8 = img_gray;
+    }
+    else {
+        img_uint8 = cv_bridge::toCvShare(msg_img, enc::MONO8)->image;
+    }
 
     image_u8_t im{img_uint8.cols, img_uint8.rows, img_uint8.cols, img_uint8.data};
 
