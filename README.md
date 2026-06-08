@@ -87,3 +87,8 @@ This `AprilTagNode` component can be loaded with other nodes into a "container n
 ```sh
 ros2 launch apriltag_ros camera_36h11.launch.yml
 ```
+ros2 run apriltag_ros apriltag_node --ros-args \
+  -r image_rect:=/zed/zed_node/rgb/image_rect_color \
+  -r camera_info:=/zed/zed_node/rgb/camera_info \
+  --params-file /home/nvidia/apriltag_ws/src/apriltag_ros/cfg/test.yaml \
+  --log-level apriltag:=debug

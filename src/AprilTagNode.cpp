@@ -14,7 +14,8 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
-#include <tf2_ros/transform_broadcaster.hpp>
+#include <tf2_msgs/msg/tf_message.hpp>
+#include <tf2_ros/qos.hpp>
 
 // apriltag
 #include "tag_functions.hpp"
@@ -87,7 +88,7 @@ private:
 
     const image_transport::CameraSubscriber sub_cam;
     const rclcpp::Publisher<apriltag_msgs::msg::AprilTagDetectionArray>::SharedPtr pub_detections;
-    tf2_ros::TransformBroadcaster tf_broadcaster;
+    const rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr pub_tf;
 
     pose_estimation_f estimate_pose = nullptr;
 
@@ -123,13 +124,9 @@ AprilTagNode::AprilTagNode(const rclcpp::NodeOptions& options)
 #endif
     },
     pub_detections(create_publisher<apriltag_msgs::msg::AprilTagDetectionArray>("detections", rclcpp::QoS(1))),
-    tf_broadcaster(
-#ifdef tf2_ros_NODE_INTERFACE
-        tf2_ros::TransformBroadcaster::RequiredInterfaces { *this }
-#else
-        this
-#endif
-    )
+    pub_tf(create_publisher<tf2_msgs::msg::TFMessage>(
+        declare_parameter("tf_topic", "/tf", descr("topic used to publish dynamic transforms", true)),
+        tf2_ros::DynamicBroadcasterQoS()))
 {
     // read-only parameters
     const std::string tag_family = declare_parameter("family", "36h11", descr("tag family", true));
@@ -298,8 +295,11 @@ void AprilTagNode::onCamera(const sensor_msgs::msg::Image::ConstSharedPtr& msg_i
 
     pub_detections->publish(msg_detections);
 
-    if(estimate_pose != nullptr)
-        tf_broadcaster.sendTransform(tfs);
+    if(estimate_pose != nullptr) {
+        tf2_msgs::msg::TFMessage msg_tf;
+        msg_tf.transforms = tfs;
+        pub_tf->publish(msg_tf);
+    }
 
     apriltag_detections_destroy(detections);
 }

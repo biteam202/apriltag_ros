@@ -36,6 +36,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(apriltag_msgs REQUIRED)
+find_package(tf2_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
@@ -119,6 +120,7 @@ target_link_libraries(AprilTagNode
     pose_estimation
     ${apriltag_msgs_TARGETS}
     ${sensor_msgs_TARGETS}
+    ${tf2_msgs_TARGETS}
     cv_bridge::cv_bridge
     image_transport::image_transport
     opencv_imgproc

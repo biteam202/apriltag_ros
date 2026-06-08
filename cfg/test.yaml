@@ -5,6 +5,7 @@
     size: 0.160                 # 默认 Tag 边长，单位 m；160mm = 0.160m
     max_hamming: 0              # 最大纠错位数，0 表示最严格，误检少
     qos_profile: default        # QoS 配置，可选 default / sensor_data / system_default
+    tf_topic: /apriltag_tf             # TF 发布话题；可改成 /apriltag_tf 等
  
     detector:
       threads: 4                # 检测线程数
